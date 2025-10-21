@@ -14,6 +14,10 @@ java {
 	}
 }
 
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs.add('-parameters')
+}
+
 repositories {
 	mavenCentral()
 }
@@ -25,14 +29,16 @@ ext {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	implementation 'org.springframework.ai:spring-ai-starter-model-vertex-ai-gemini'
-
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'io.projectreactor:reactor-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	implementation 'com.google.cloud:spring-cloud-gcp-starter:5.2.1'
+	implementation 'com.google.cloud:spring-cloud-gcp-starter-data-firestore:5.2.1'
+	implementation 'org.apache.poi:poi-ooxml:5.2.3'
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
 }
 
 dependencyManagement {
 	imports {
+		mavenBom "com.google.cloud:spring-cloud-gcp-dependencies:5.2.1"
 		mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
 	}
 }
