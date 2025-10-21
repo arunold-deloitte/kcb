@@ -18,13 +18,13 @@ import com.namak.repositories.QuestionRepository;
 import reactor.core.publisher.Flux;
 
 @Service
-public class ChatService {
+public class GenAIService {
     private final VertexAiGeminiChatModel chatModel;
     private final DocumentService documentService;
     private final QuestionRepository questionRepository;
     private final ObjectMapper objectMapper;
 
-    public ChatService(VertexAiGeminiChatModel chatModel, DocumentService documentService,
+    public GenAIService(VertexAiGeminiChatModel chatModel, DocumentService documentService,
             QuestionRepository questionRepository, ObjectMapper objectMapper) {
         this.chatModel = chatModel;
         this.documentService = documentService;
@@ -46,20 +46,6 @@ public class ChatService {
                 """
                 .formatted(numQuestions, topic);
         return chatModel.stream(prompt);
-    }
-
-    public Flux<String> generateMaxQuiz(String documentContent) {
-        String prompt = """
-                Generate the maximum number of quiz questions in JSON format based on the following document.
-                Each question should have a 'question' field (string), an 'answer' field (string), and an 'options' field.
-                The 'options' field must be an array of JSON objects, each with an 'option' (string) and a 'description' (string) field.
-                """
-                + documentContent;
-        return chatModel.stream(prompt);
-    }
-
-    public Flux<Question> getQuestions(int count) {
-        return questionRepository.findAll().take(count);
     }
 
     public Flux<Question> generateAndSaveQuestionsFromDocument(String documentName) {
