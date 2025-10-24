@@ -29,7 +29,7 @@ public class QuestionController {
     }
 
     @PostMapping("/init-questions-gen")
-    public String initializeQuestionsGen() {
+    public Mono<String> initializeQuestionsGen() {
         return questionService.loadQuestionsFromDocs(docsPath);
     }
 

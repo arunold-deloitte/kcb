@@ -18,7 +18,7 @@ public class DataInitializerConfig {
 	@ConditionalOnProperty(name = "questions.load-init", havingValue = "true")
 	public CommandLineRunner initQuestionsGen(QuestionService questionService) {
 		return args -> {
-			questionService.loadQuestionsFromDocs(docsPath);
+			questionService.loadQuestionsFromDocs(docsPath).subscribe(System.out::println);
 		};
 	}
 }

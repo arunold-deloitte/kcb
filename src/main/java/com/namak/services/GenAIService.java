@@ -85,7 +85,7 @@ public class GenAIService {
           ]
         }
         ```
-        Now, generate as many high-quality questions as possible based on the following document. Minimum of 25 questions.
+        Now, generate as many high-quality questions as possible based on the following document. Minimum of 75 questions.
         """ + documentContent;
 
         return chatModel.stream(prompt)

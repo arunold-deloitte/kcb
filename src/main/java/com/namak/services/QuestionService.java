@@ -19,6 +19,8 @@ import com.namak.repositories.QuestionRepository;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
 
 @Service
 public class QuestionService {
@@ -98,50 +100,46 @@ public class QuestionService {
         questionRepository.deleteAll().subscribe();
     }
 
-    public String loadQuestionsFromDocs(String docsPath) {
-        try {
-            clearAllQuestions();
-            StringBuffer out = new StringBuffer();
-            AtomicLong totalTime = new AtomicLong(0);
-            AtomicLong questionsCt = new AtomicLong(0);
-            Resource[] resources = resourcePatternResolver.getResources("file:" + docsPath + "/**");
-            Flux.fromArray(resources)
-                    .filter(Resource::isReadable)
-                    .map(resource -> {
-                        try {
-                            return resource.getFile().getAbsolutePath();
-                        } catch (Exception e) {
-                            return null;
-                        }
-                    }).filter(path -> path != null && !path.isEmpty())
-                    .doOnNext(path -> System.out
-                            .println("Generating and saving questions from document: " + path))
-                    .flatMap(path -> {
-                        long fileStartTime = System.currentTimeMillis();
-                        return genAIService.generateQuestionsFromDocument(path)
-                                .collectList().map(ques -> {
-                                    questionsCt.addAndGet(ques.size());
-                                    long fileEndTime = System.currentTimeMillis();
-                                    long secs = (fileEndTime - fileStartTime) / 1000;
-                                    totalTime.addAndGet(secs);
-                                    String msg = "Questions: " + ques.size() + ", Time: " + secs + ", File: " + path;
-                                    out.append(msg + "\n");
-                                    System.out.println(msg);
-                                    questionRepository.saveAll(ques).subscribe();
-                                    return ques;
-                                });
-                    }).doOnComplete(
-                            () -> {
-                                out.append("Total questions saved to DB: " + questionsCt.get() + "\n");
-                                out.append("Total time to load all files: " + totalTime.get() + "s\n");
-                                System.out.println("Total questions saved to DB: " + questionsCt.get());
-                                System.out.println("Total time to load all files: " + totalTime.get() + "s");
-                            })
-                    .subscribe();
-            return out.toString();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return "Error: " + e.getMessage();
-        }
+    public Mono<String> loadQuestionsFromDocs(String docsPath) {
+        long startTime = System.currentTimeMillis();
+
+        return Mono.fromCallable(() -> resourcePatternResolver.getResources("file:" + docsPath + "/**"))
+                .flatMapMany(Flux::fromArray)
+                .filter(Resource::isReadable)
+                .map(resource -> {
+                    try {
+                        return resource.getFile().getAbsolutePath();
+                    } catch (IOException e) {
+                        throw new RuntimeException("Failed to get file path from resource", e);
+                    }
+                })
+                .parallel()
+                .runOn(Schedulers.parallel())
+                .flatMap(path -> {
+                    System.out.println("Generating and saving questions from document: " + path);
+                    long fileStartTime = System.currentTimeMillis();
+                    return genAIService.generateQuestionsFromDocument(path)
+                            .collectList()
+                            .flatMap(questions -> {
+                                long fileEndTime = System.currentTimeMillis();
+                                long duration = (fileEndTime - fileStartTime) / 1000;
+                                System.out.println("Generated " + questions.size() + " questions from " + path + " in "
+                                        + duration + "s");
+                                return questionRepository.saveAll(questions)
+                                        .then(Mono.just(new FileProcessingResult(path, questions.size(), duration)));
+                            });
+                })
+                .sequential()
+                .collectList()
+                .map(results -> {
+                    long totalQuestions = results.stream().mapToLong(FileProcessingResult::questionCount).sum();
+                    long totalDuration = System.currentTimeMillis() - startTime;
+                    return "Successfully loaded " + totalQuestions + " questions from " + results.size() + " files in "
+                            + totalDuration / 1000 + "s";
+                })
+                .doOnSubscribe(subscription -> clearAllQuestions());
+    }
+
+    private record FileProcessingResult(String filePath, int questionCount, long duration) {
     }
 }
