@@ -17,6 +17,7 @@ public class Question {
     private List<Option> options;
     private String sop;
     private String lob;
+    private String selectedOption;
 
     // Getters and Setters
     public String getId() {
@@ -65,5 +66,13 @@ public class Question {
 
     public void setLob(String lineOfBusiness) {
         this.lob = lineOfBusiness;
+    }
+
+    public String getSelectedOption() {
+        return selectedOption;
+    }
+
+    public void setSelectedOption(String selectedOption) {
+        this.selectedOption = selectedOption;
     }
 }

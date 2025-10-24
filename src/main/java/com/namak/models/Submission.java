@@ -22,16 +22,16 @@ public class Submission {
 
     private String participantId;
 
-    private List<Answer> answers; // List of maps, each map has "questionId", "answer"
+    private List<Question> answers; // List of maps, each map has "questionId", "answer"
 
     private Double score;
 
 }
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-class Answer {
-    private String questionId;
-    private String answer;
-}
+// @Data
+// @NoArgsConstructor
+// @AllArgsConstructor
+// class Answer {
+//     private String questionId;
+//     private String selectedOption;
+// }
