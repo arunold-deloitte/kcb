@@ -31,6 +31,6 @@ public class ChatController {
 
     @GetMapping("/quiz-from-doc")
     public Flux<Question> generateQuizFromDoc(@RequestParam String docName) {
-        return genAIService.generateAndSaveQuestionsFromDocument(docName);
+        return genAIService.generateQuestionsFromDocument(docName);
     }
 }

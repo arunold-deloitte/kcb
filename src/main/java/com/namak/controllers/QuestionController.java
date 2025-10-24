@@ -43,10 +43,15 @@ public class QuestionController {
         return questionService.getSopByLob(lob);
     }
 
+    // @GetMapping("/questions")
+    // public Flux<Question> getQuestionsByLobAndSopAndCount(@RequestParam String lob, @RequestParam String sop,
+    //         @RequestParam(defaultValue = "10", required = false) int count) {
+    //     return questionService.getQuestionsByLobAndSopAndCount(lob, sop, count);
+    // }
+
     @GetMapping("/questions")
-    public Flux<Question> getQuestionsByLobAndSopAndCount(@RequestParam String lob, @RequestParam String sop,
-            @RequestParam(defaultValue = "10", required = false) int count) {
-        return questionService.getQuestionsByLobAndSopAndCount(lob, sop, count);
+    public Flux<Question> getQuestionsByLob(@RequestParam String lob) {
+        return questionService.getQuestionsByLob(lob);
     }
 
     @DeleteMapping("/clear-questions")

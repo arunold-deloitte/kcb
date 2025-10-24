@@ -21,14 +21,12 @@ import reactor.core.publisher.Flux;
 public class GenAIService {
     private final VertexAiGeminiChatModel chatModel;
     private final DocumentService documentService;
-    private final QuestionRepository questionRepository;
     private final ObjectMapper objectMapper;
 
     public GenAIService(VertexAiGeminiChatModel chatModel, DocumentService documentService,
-            QuestionRepository questionRepository, ObjectMapper objectMapper) {
+            ObjectMapper objectMapper) {
         this.chatModel = chatModel;
         this.documentService = documentService;
-        this.questionRepository = questionRepository;
         this.objectMapper = objectMapper;
 
     }
@@ -48,7 +46,7 @@ public class GenAIService {
         return chatModel.stream(prompt);
     }
 
-    public Flux<Question> generateAndSaveQuestionsFromDocument(String documentName) {
+    public Flux<Question> generateQuestionsFromDocument(String documentName) {
         String documentContent = documentService.readDocxFile(documentName);
         String prompt = """
         You are an automated quiz generation service. Your sole function is to generate a JSON array of questions based on the provided document.
@@ -97,7 +95,7 @@ public class GenAIService {
                     try {
                         FileUtils.writeStringToFile(new File("test.json"), jsonString, Charset.forName("UTF-8"));
                         List<Question> questions = objectMapper.readValue(jsonString, new TypeReference<List<Question>>() {});
-                        return questionRepository.saveAll(questions);
+                        return Flux.fromIterable(questions);
                     } catch (JsonProcessingException e) {
                         return Flux.error(new RuntimeException("Failed to parse JSON from AI model: " + jsonString, e));
                     } catch (IOException e) {
