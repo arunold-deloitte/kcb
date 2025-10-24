@@ -3,7 +3,6 @@ package com.namak.services;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -13,13 +12,11 @@ import org.springframework.stereotype.Service;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.Query;
-import com.google.cloud.spring.data.firestore.FirestoreTemplate;
 import com.namak.models.Question;
 import com.namak.repositories.QuestionRepository;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
 @Service
@@ -27,18 +24,16 @@ public class QuestionService {
     private final ResourcePatternResolver resourcePatternResolver;
     private final GenAIService genAIService;
     private final QuestionRepository questionRepository;
-    private final FirestoreTemplate firestoreTemplate;
     private final Firestore db;
 
     @Value("${namak.default.questions.count:10}")
     int defaultQuestionsCount;
 
     public QuestionService(ResourcePatternResolver resourcePatternResolver, GenAIService genAIService,
-            QuestionRepository questionRepository, FirestoreTemplate firestoreTemplate, Firestore db) {
+            QuestionRepository questionRepository, Firestore db) {
         this.resourcePatternResolver = resourcePatternResolver;
         this.genAIService = genAIService;
         this.questionRepository = questionRepository;
-        this.firestoreTemplate = firestoreTemplate;
         this.db = db;
     }
 

@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.namak.config.DataInitializerConfig;
 import com.namak.models.Question;
 import com.namak.services.QuestionService;
 
@@ -24,7 +23,7 @@ public class QuestionController {
 
     private final QuestionService questionService;
 
-    public QuestionController(DataInitializerConfig dataInitializerConfig, QuestionService questionService) {
+    public QuestionController(QuestionService questionService) {
         this.questionService = questionService;
     }
 
@@ -42,12 +41,6 @@ public class QuestionController {
     public Mono<List<String>> getSops(@RequestParam String lob) {
         return questionService.getSopByLob(lob);
     }
-
-    // @GetMapping("/questions")
-    // public Flux<Question> getQuestionsByLobAndSopAndCount(@RequestParam String lob, @RequestParam String sop,
-    //         @RequestParam(defaultValue = "10", required = false) int count) {
-    //     return questionService.getQuestionsByLobAndSopAndCount(lob, sop, count);
-    // }
 
     @GetMapping("/questions")
     public Flux<Question> getQuestionsByLob(@RequestParam String lob) {

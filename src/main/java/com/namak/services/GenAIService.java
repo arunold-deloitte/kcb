@@ -13,42 +13,41 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.namak.models.Question;
-import com.namak.repositories.QuestionRepository;
 
 import reactor.core.publisher.Flux;
 
 @Service
 public class GenAIService {
-    private final VertexAiGeminiChatModel chatModel;
-    private final DocumentService documentService;
-    private final ObjectMapper objectMapper;
+  private final VertexAiGeminiChatModel chatModel;
+  private final DocumentService documentService;
+  private final ObjectMapper objectMapper;
 
-    public GenAIService(VertexAiGeminiChatModel chatModel, DocumentService documentService,
-            ObjectMapper objectMapper) {
-        this.chatModel = chatModel;
-        this.documentService = documentService;
-        this.objectMapper = objectMapper;
+  public GenAIService(VertexAiGeminiChatModel chatModel, DocumentService documentService,
+      ObjectMapper objectMapper) {
+    this.chatModel = chatModel;
+    this.documentService = documentService;
+    this.objectMapper = objectMapper;
 
-    }
+  }
 
-    public Flux<String> chat(String prompt) {
-        return chatModel.stream(prompt);
-    }
+  public Flux<String> chat(String prompt) {
+    return chatModel.stream(prompt);
+  }
 
-    public Flux<String> generateQuiz(String topic, int numQuestions) {
-        String prompt = """
-                "Generate a quiz with %s questions on the topic of %s. The output must be a single, valid JSON array.
-                Each element in the array should be a JSON object representing a question.
-                Each question object must have a 'question' field (string),
-                an 'options' field (an array of objects with 'option' and 'description' strings), and an 'answer' field (string)."
-                """
-                .formatted(numQuestions, topic);
-        return chatModel.stream(prompt);
-    }
+  public Flux<String> generateQuiz(String topic, int numQuestions) {
+    String prompt = """
+        "Generate a quiz with %s questions on the topic of %s. The output must be a single, valid JSON array.
+        Each element in the array should be a JSON object representing a question.
+        Each question object must have a 'question' field (string),
+        an 'options' field (an array of objects with 'option' and 'description' strings), and an 'answer' field (string)."
+        """
+        .formatted(numQuestions, topic);
+    return chatModel.stream(prompt);
+  }
 
-    public Flux<Question> generateQuestionsFromDocument(String documentName) {
-        String documentContent = documentService.readDocxFile(documentName);
-        String prompt = """
+  public Flux<Question> generateQuestionsFromDocument(String documentName) {
+    String documentContent = documentService.readDocxFile(documentName);
+    String prompt = """
         You are an automated quiz generation service. Your sole function is to generate a JSON array of questions based on the provided document.
 
         **Strict Output Rules:**
@@ -64,7 +63,7 @@ public class GenAIService {
         - `lob`: A string identifying the Line of Business (LOB) the question is related to.
         - `answerDescription`: A string explaining why the selected answer is correct.
         - `options`: An array of 4 strings representing the answer choices.
-        
+
         **Example of a single question object:**
         ```json
         {
@@ -82,21 +81,22 @@ public class GenAIService {
         }
         ```
         Now, generate as many high-quality questions as possible based on the following document. Minimum of 75 questions.
-        """ + documentContent;
+        """
+        + documentContent;
 
-        return chatModel.stream(prompt)
-                .collectList()
-                .map(list -> String.join("", list))
-                .flatMapMany(jsonString -> {
-                    try {
-                        FileUtils.writeStringToFile(new File("test.json"), jsonString, Charset.forName("UTF-8"));
-                        List<Question> questions = objectMapper.readValue(jsonString, new TypeReference<List<Question>>() {});
-                        return Flux.fromIterable(questions);
-                    } catch (JsonProcessingException e) {
-                        return Flux.error(new RuntimeException("Failed to parse JSON from AI model: " + jsonString, e));
-                    } catch (IOException e) {
-                        return Flux.error(new RuntimeException("Failed to write or process AI response: " + e.getMessage(), e));
-                    }
-                });
-    }
+    return chatModel.stream(prompt)
+        .collectList()
+        .map(list -> String.join("", list))
+        .flatMapMany(jsonString -> {
+          try {
+            FileUtils.writeStringToFile(new File("test.json"), jsonString, Charset.forName("UTF-8"));
+            return Flux.fromIterable(objectMapper.readValue(jsonString, new TypeReference<List<Question>>() {
+            }));
+          } catch (JsonProcessingException e) {
+            return Flux.error(new RuntimeException("Failed to parse JSON from AI model: " + jsonString, e));
+          } catch (IOException e) {
+            return Flux.error(new RuntimeException("Failed to write or process AI response: " + e.getMessage(), e));
+          }
+        });
+  }
 }

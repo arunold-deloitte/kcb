@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.namak.models.Question;
 import com.namak.services.GenAIService;
-import com.namak.services.QuestionService;
 
 import reactor.core.publisher.Flux;
 
@@ -15,7 +14,7 @@ public class ChatController {
 
     private final GenAIService genAIService;
 
-    public ChatController(GenAIService genAIService, QuestionService questionService) {
+    public ChatController(GenAIService genAIService) {
         this.genAIService = genAIService;
     }
 

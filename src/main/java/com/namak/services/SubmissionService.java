@@ -3,7 +3,6 @@ package com.namak.services;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.namak.models.Question;
@@ -17,11 +16,14 @@ import reactor.core.publisher.Mono;
 @Service
 public class SubmissionService {
 
-    @Autowired
-    private SubmissionRepository submissionRepository;
+    private final SubmissionRepository submissionRepository;
 
-    @Autowired
-    private QuestionRepository questionRepository;
+    private final QuestionRepository questionRepository;
+
+    public SubmissionService(SubmissionRepository submissionRepository, QuestionRepository questionRepository) {
+        this.submissionRepository = submissionRepository;
+        this.questionRepository = questionRepository;
+    }
 
     public Mono<Submission> submit(Submission submission) {
         List<String> questionIds = submission.getAnswers().stream()
@@ -42,7 +44,8 @@ public class SubmissionService {
                     long correctCount = submission.getAnswers().stream()
                             .filter(q -> {
                                 Question correctQuestion = correctQuestionsMap.get(q.getId());
-                                return correctQuestion != null && correctQuestion.getAnswer().equals(q.getSelectedOption());
+                                return correctQuestion != null
+                                        && correctQuestion.getAnswer().equals(q.getSelectedOption());
                             })
                             .count();
 

@@ -1,17 +1,17 @@
 package com.namak.controllers;
 
-import com.namak.models.Participant;
-import com.namak.models.Submission;
-import com.namak.services.ParticipantService;
-import com.namak.services.SubmissionService;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.namak.models.Participant;
+import com.namak.models.Submission;
+import com.namak.services.ParticipantService;
+import com.namak.services.SubmissionService;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -19,11 +19,14 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/participants")
 public class ParticipantController {
 
-    @Autowired
-    private ParticipantService participantService;
+    private final ParticipantService participantService;
 
-    @Autowired
-    private SubmissionService submissionService;
+    private final SubmissionService submissionService;
+
+    public ParticipantController(ParticipantService participantService, SubmissionService submissionService) {
+        this.participantService = participantService;
+        this.submissionService = submissionService;
+    }
 
     @PostMapping("/register")
     public Mono<Participant> register(@RequestBody Participant participant) {

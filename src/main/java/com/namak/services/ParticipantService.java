@@ -1,9 +1,9 @@
 package com.namak.services;
 
+import org.springframework.stereotype.Service;
+
 import com.namak.models.Participant;
 import com.namak.repositories.ParticipantRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -11,8 +11,11 @@ import reactor.core.publisher.Mono;
 @Service
 public class ParticipantService {
 
-    @Autowired
-    private ParticipantRepository participantRepository;
+    private final ParticipantRepository participantRepository;
+
+    public ParticipantService(ParticipantRepository participantRepository) {
+        this.participantRepository = participantRepository;
+    }
 
     public Mono<Participant> registerParticipant(Participant participant) {
         return participantRepository.findByEmail(participant.getEmail())
