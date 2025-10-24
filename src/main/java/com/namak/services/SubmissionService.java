@@ -35,6 +35,7 @@ public class SubmissionService {
                         Question correctQuestion = correctQuestionsMap.get(q.getId());
                         if (correctQuestion != null) {
                             q.setAnswer(correctQuestion.getAnswer());
+                            q.setDescription(correctQuestion.getDescription());
                         }
                     });
 

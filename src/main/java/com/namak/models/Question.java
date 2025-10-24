@@ -5,19 +5,17 @@ import java.util.List;
 import com.google.cloud.firestore.annotation.DocumentId;
 import com.google.cloud.spring.data.firestore.Document;
 
-// import com.google.cloud.spring.data.firestore.mapping.Document;
-// import com.google.cloud.spring.data.firestore.mapping.DocumentId;
-
 @Document(collectionName = "questions")
 public class Question {
     @DocumentId
     private String id;
     private String question;
     private String answer;
-    private List<Option> options;
+    private List<String> options;
     private String sop;
     private String lob;
     private String selectedOption;
+    private String description;
 
     // Getters and Setters
     public String getId() {
@@ -44,11 +42,11 @@ public class Question {
         this.answer = answer;
     }
 
-    public List<Option> getOptions() {
+    public List<String> getOptions() {
         return options;
     }
 
-    public void setOptions(List<Option> options) {
+    public void setOptions(List<String> options) {
         this.options = options;
     }
 
@@ -74,5 +72,13 @@ public class Question {
 
     public void setSelectedOption(String selectedOption) {
         this.selectedOption = selectedOption;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

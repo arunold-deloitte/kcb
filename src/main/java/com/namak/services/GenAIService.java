@@ -62,9 +62,8 @@ public class GenAIService {
         - `answer`: A string containing the correct answer.
         - `sop`: A string identifying the Standard Operating Procedure (SOP) from which the question is derived.
         - `lob`: A string identifying the Line of Business (LOB) the question is related to.
-        - `options`: An array of objects with exactly 4 items, where each object has:
-          - `option`: A string for the answer choice.
-          - `description`: A string explaining why the option is correct or incorrect.
+        - `answerDescription`: A string explaining why the selected answer is correct.
+        - `options`: An array of 4 strings representing the answer choices.
         
         **Example of a single question object:**
         ```json
@@ -73,15 +72,12 @@ public class GenAIService {
           "answer": "To provide programmatic access to Google's large language models.",
           "sop": "API Usage Guidelines",
           "lob": "Technology",
+          "answerDescription": "The Gemini API is designed to give developers access to Google's powerful large language models, allowing them to build AI-powered features and applications.",
           "options": [
-            {
-              "option": "To provide programmatic access to Google's large language models.",
-              "description": "Correct. The API allows developers to integrate Gemini models into their applications."
-            },
-            {
-              "option": "To manage Google Cloud server instances.",
-              "description": "Incorrect. That is handled by the Google Cloud Compute Engine API."
-            }
+            "To provide programmatic access to Google's large language models.",
+            "To manage Google Cloud server instances.",
+            "To analyze user data for marketing purposes.",
+            "To create virtual reality environments."
           ]
         }
         ```
