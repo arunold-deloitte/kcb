@@ -31,5 +31,5 @@ public class Question {
 
     private String selectedOption;
 
-    private String description;
+    private String answerDescription;
 }

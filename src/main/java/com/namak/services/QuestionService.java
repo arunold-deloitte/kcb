@@ -100,7 +100,7 @@ public class QuestionService {
 
         return Mono.fromCallable(() -> resourcePatternResolver.getResources("file:" + docsPath + "/**"))
                 .flatMapMany(Flux::fromArray)
-                .filter(Resource::isReadable)
+                .filter(r-> r.isReadable() && r.getFilename().endsWith(".docx"))
                 .map(resource -> {
                     try {
                         return resource.getFile().getAbsolutePath();

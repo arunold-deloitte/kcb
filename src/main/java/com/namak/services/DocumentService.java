@@ -16,6 +16,7 @@ public class DocumentService {
                 XWPFWordExtractor extractor = new XWPFWordExtractor(doc)) {
             return extractor.getText();
         } catch (Exception e) {
+            System.err.println("Error reading DOCX file: " + absoluteFilePath);
             throw new RuntimeException("Failed to read DOCX file", e);
         }
     }
