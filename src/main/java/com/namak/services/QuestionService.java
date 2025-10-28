@@ -1,7 +1,6 @@
 package com.namak.services;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -71,8 +70,8 @@ public class QuestionService {
 
     public Flux<Question> getQuestionsByLobAndSopAndCount(String lob, String sop, int count) {
         CollectionReference questionsRef = db.collection("questions");
-        Query query = questionsRef.select("sop", "lob", "question", "options").whereEqualTo("lob", lob)
-                .whereEqualTo("sop", sop).limit(count);
+        Query query = questionsRef.select("question", "options").whereEqualTo("lob", lob)
+                .whereEqualTo("sop", sop).orderBy("lastRetrieved").limit(count);
         try {
             return Flux.fromIterable(query.get().get().toObjects(Question.class));
         } catch (InterruptedException | ExecutionException e) {
@@ -82,7 +81,7 @@ public class QuestionService {
 
     public Flux<Question> getQuestionsByLob1(String lob) {
         CollectionReference questionsRef = db.collection("questions");
-        Query query = questionsRef.select("sop", "lob", "question", "options").whereEqualTo("lob", lob)
+        Query query = questionsRef.select("question", "options").whereEqualTo("lob", lob)
                 .limit(defaultQuestionsCount);
         try {
             return Flux.fromIterable(query.get().get().toObjects(Question.class));
@@ -92,7 +91,7 @@ public class QuestionService {
     }
 
     public Flux<Question> getQuestionsByLob(String lob) {
-        return getSopByLob(lob)
+        Flux<Question> questions = getSopByLob(lob)
                 .flatMapMany(sops -> {
                     if (sops.isEmpty())
                         return Flux.empty();
@@ -112,6 +111,10 @@ public class QuestionService {
                                 return getQuestionsByLobAndSopAndCount(lob, sop, limit);
                             });
                 });
+        return questions.collectList().map(list -> {
+            updateLastRetrievedForQuestions(list);
+            return list;
+        }).flatMapMany(Flux::fromIterable);
     }
 
     public void clearAllQuestions() {
@@ -159,8 +162,7 @@ public class QuestionService {
     }
 
     private void updateLastRetrieved(List<Question> questions) {
-        LocalDateTime now = LocalDateTime.now();
-        questions.forEach(q -> q.setLastRetrieved(now));
+        questions.forEach(q -> q.setLastRetrieved(System.currentTimeMillis()));
         questionRepository.saveAll(questions).subscribeOn(Schedulers.boundedElastic()).subscribe();
     }
 
@@ -168,14 +170,15 @@ public class QuestionService {
         if (questions == null || questions.isEmpty()) {
             return;
         }
+        System.out.println("Updating lastRetrieved for " + questions.size() + " questions");
         Mono.fromRunnable(() -> {
             com.google.cloud.firestore.WriteBatch batch = db.batch();
-            LocalDateTime now = LocalDateTime.now();
             questions.forEach(q -> {
                 com.google.cloud.firestore.DocumentReference docRef = db.collection("questions").document(q.getId());
-                batch.update(docRef, "lastRetrieved", now);
+                batch.update(docRef, "lastRetrieved", System.currentTimeMillis());
             });
             batch.commit();
+            System.out.println("Updated lastRetrieved for " + questions.size() + " questions");
         }).subscribeOn(Schedulers.boundedElastic()).subscribe();
     }
 

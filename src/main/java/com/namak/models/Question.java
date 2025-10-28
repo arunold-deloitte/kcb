@@ -1,8 +1,8 @@
 package com.namak.models;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.cloud.firestore.annotation.DocumentId;
 import com.google.cloud.spring.data.firestore.Document;
 
@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Question {
     @DocumentId
     private String id;
@@ -34,5 +35,5 @@ public class Question {
 
     private String answerDescription;
 
-    private LocalDateTime lastRetrieved;
+    private long lastRetrieved;
 }
