@@ -1,11 +1,11 @@
 package com.namak.services;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.stereotype.Service;
 
@@ -80,7 +80,7 @@ public class QuestionService {
         }
     }
 
-    public Flux<Question> getQuestionsByLob(String lob) {
+    public Flux<Question> getQuestionsByLob1(String lob) {
         CollectionReference questionsRef = db.collection("questions");
         Query query = questionsRef.select("sop", "lob", "question", "options").whereEqualTo("lob", lob)
                 .limit(defaultQuestionsCount);
@@ -89,6 +89,29 @@ public class QuestionService {
         } catch (InterruptedException | ExecutionException e) {
             return Flux.error(new RuntimeException("Failed to fetch data from DB: ", e));
         }
+    }
+
+    public Flux<Question> getQuestionsByLob(String lob) {
+        return getSopByLob(lob)
+                .flatMapMany(sops -> {
+                    if (sops.isEmpty())
+                        return Flux.empty();
+
+                    int numberOfSops = sops.size();
+                    int questionsPerSop = defaultQuestionsCount / numberOfSops;
+                    int remainder = defaultQuestionsCount % numberOfSops;
+
+                    return Flux.fromIterable(sops)
+                            .index()
+                            .flatMap(indexedSop -> {
+                                long index = indexedSop.getT1();
+                                String sop = indexedSop.getT2();
+                                int limit = questionsPerSop + (index < remainder ? 1 : 0);
+                                if (limit == 0)
+                                    return Flux.empty();
+                                return getQuestionsByLobAndSopAndCount(lob, sop, limit);
+                            });
+                });
     }
 
     public void clearAllQuestions() {
@@ -100,7 +123,7 @@ public class QuestionService {
 
         return Mono.fromCallable(() -> resourcePatternResolver.getResources("file:" + docsPath + "/**"))
                 .flatMapMany(Flux::fromArray)
-                .filter(r-> r.isReadable() && r.getFilename().endsWith(".docx"))
+                .filter(r -> r.isReadable() && r.getFilename().endsWith(".docx"))
                 .map(resource -> {
                     try {
                         return resource.getFile().getAbsolutePath();
@@ -133,6 +156,27 @@ public class QuestionService {
                             + totalDuration / 1000 + "s";
                 })
                 .doOnSubscribe(subscription -> clearAllQuestions());
+    }
+
+    private void updateLastRetrieved(List<Question> questions) {
+        LocalDateTime now = LocalDateTime.now();
+        questions.forEach(q -> q.setLastRetrieved(now));
+        questionRepository.saveAll(questions).subscribeOn(Schedulers.boundedElastic()).subscribe();
+    }
+
+    private void updateLastRetrievedForQuestions(List<Question> questions) {
+        if (questions == null || questions.isEmpty()) {
+            return;
+        }
+        Mono.fromRunnable(() -> {
+            com.google.cloud.firestore.WriteBatch batch = db.batch();
+            LocalDateTime now = LocalDateTime.now();
+            questions.forEach(q -> {
+                com.google.cloud.firestore.DocumentReference docRef = db.collection("questions").document(q.getId());
+                batch.update(docRef, "lastRetrieved", now);
+            });
+            batch.commit();
+        }).subscribeOn(Schedulers.boundedElastic()).subscribe();
     }
 
     private record FileProcessingResult(String filePath, int questionCount, long duration) {

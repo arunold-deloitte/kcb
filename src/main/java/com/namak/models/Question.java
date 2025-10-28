@@ -1,5 +1,6 @@
 package com.namak.models;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.google.cloud.firestore.annotation.DocumentId;
@@ -32,4 +33,6 @@ public class Question {
     private String selectedOption;
 
     private String answerDescription;
+
+    private LocalDateTime lastRetrieved;
 }
