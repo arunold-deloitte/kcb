@@ -28,12 +28,27 @@ public class QuestionService {
     @Value("${namak.default.questions.count:10}")
     int defaultQuestionsCount;
 
+    @Value("${namak.max.doc.process.threads:32}")
+    int maxDocProcessThreads;
+
     public QuestionService(ResourcePatternResolver resourcePatternResolver, GenAIService genAIService,
             QuestionRepository questionRepository, Firestore db) {
         this.resourcePatternResolver = resourcePatternResolver;
         this.genAIService = genAIService;
         this.questionRepository = questionRepository;
         this.db = db;
+    }
+
+    public Flux<Question> saveQuestions(Flux<Question> questions) {
+        return questions.collectList().flatMapMany(questionRepository::saveAll);
+    }
+
+    private void saveQuestionsAsync(List<Question> questions) {
+        if (questions == null || questions.isEmpty()) {
+            return;
+        }
+        System.out.println("Saving " + questions.size() + " questions");
+        questionRepository.saveAll(questions).subscribeOn(Schedulers.boundedElastic()).subscribe();
     }
 
     public Flux<Question> getQuestions(int count) {
@@ -134,23 +149,22 @@ public class QuestionService {
                         throw new RuntimeException("Failed to get file path from resource", e);
                     }
                 })
-                .parallel()
-                .runOn(Schedulers.parallel())
-                .flatMap(path -> {
+                .flatMap(path -> Mono.defer(() -> {
                     System.out.println("Generating and saving questions from document: " + path);
                     long fileStartTime = System.currentTimeMillis();
-                    return genAIService.generateQuestionsFromDocument(path)
+                    String lob = getLob(path);
+                    return genAIService.generateQuestionsFromDocument(path, lob)
                             .collectList()
                             .flatMap(questions -> {
                                 long fileEndTime = System.currentTimeMillis();
                                 long duration = (fileEndTime - fileStartTime) / 1000;
                                 System.out.println("Generated " + questions.size() + " questions from " + path + " in "
                                         + duration + "s");
-                                return questionRepository.saveAll(questions)
-                                        .then(Mono.just(new FileProcessingResult(path, questions.size(), duration)));
+                                saveQuestionsAsync(questions);
+                                return Mono.just(new FileProcessingResult(path, questions.size(), duration));
                             });
-                })
-                .sequential()
+                }).subscribeOn(Schedulers.boundedElastic()),
+                        maxDocProcessThreads) // Concurrency of 32 by default
                 .collectList()
                 .map(results -> {
                     long totalQuestions = results.stream().mapToLong(FileProcessingResult::questionCount).sum();
@@ -159,6 +173,11 @@ public class QuestionService {
                             + totalDuration / 1000 + "s";
                 })
                 .doOnSubscribe(subscription -> clearAllQuestions());
+    }
+
+    private String getLob(String path) {
+        String[] pathParts = path.split("/");
+        return pathParts[pathParts.length - 2];
     }
 
     private void updateLastRetrieved(List<Question> questions) {

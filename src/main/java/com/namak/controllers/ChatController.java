@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.namak.models.Question;
 import com.namak.services.GenAIService;
+import com.namak.services.QuestionService;
 
 import reactor.core.publisher.Flux;
 
@@ -13,9 +14,11 @@ import reactor.core.publisher.Flux;
 public class ChatController {
 
     private final GenAIService genAIService;
+    private final QuestionService questionService;
 
-    public ChatController(GenAIService genAIService) {
+    public ChatController(GenAIService genAIService, QuestionService questionService) {
         this.genAIService = genAIService;
+        this.questionService = questionService;
     }
 
     @GetMapping("/chat")
@@ -29,7 +32,8 @@ public class ChatController {
     }
 
     @GetMapping("/quiz-from-doc")
-    public Flux<Question> generateQuizFromDoc(@RequestParam String docName) {
-        return genAIService.generateQuestionsFromDocument(docName);
+    public Flux<Question> generateQuizFromDoc(@RequestParam String docName, @RequestParam String lob) {
+        return questionService.saveQuestions(genAIService.generateQuestionsFromDocument(docName, lob));
+
     }
 }

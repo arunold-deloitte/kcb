@@ -1,11 +1,8 @@
 package com.namak.services;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.List;
 
-import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
 import org.springframework.ai.vertexai.gemini.VertexAiGeminiChatModel;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +15,8 @@ import reactor.core.publisher.Flux;
 
 @Service
 public class GenAIService {
+  private static final Logger log = org.slf4j.LoggerFactory.getLogger(GenAIService.class);
+
   private final VertexAiGeminiChatModel chatModel;
   private final DocumentService documentService;
   private final ObjectMapper objectMapper;
@@ -45,7 +44,7 @@ public class GenAIService {
     return chatModel.stream(prompt);
   }
 
-  public Flux<Question> generateQuestionsFromDocument(String documentName) {
+  public Flux<Question> generateQuestionsFromDocument(String documentName, String lob) {
     String documentContent = documentService.readDocxFile(documentName);
     String prompt = """
         You are an automated quiz generation service. Your sole function is to generate a JSON array of questions based on the provided document.
@@ -80,22 +79,21 @@ public class GenAIService {
           ]
         }
         ```
-        Now, generate as many high-quality questions as possible based on the following document. Minimum of 75 questions.
+        Now, generate as many high-quality questions as possible based on the following document for the lob %s. Minimum of 75 questions.
+        %s
         """
-        + documentContent;
+        .formatted(lob, documentContent);
 
     return chatModel.stream(prompt)
         .collectList()
         .map(list -> String.join("", list))
         .flatMapMany(jsonString -> {
           try {
-            FileUtils.writeStringToFile(new File("test.json"), jsonString, Charset.forName("UTF-8"));
             return Flux.fromIterable(objectMapper.readValue(jsonString, new TypeReference<List<Question>>() {
             }));
           } catch (JsonProcessingException e) {
-            return Flux.error(new RuntimeException("Failed to parse JSON from AI model: " + jsonString, e));
-          } catch (IOException e) {
-            return Flux.error(new RuntimeException("Failed to write or process AI response: " + e.getMessage(), e));
+            log.error("Failed to parse JSON from AI model: {}", jsonString, e);
+            return Flux.empty();
           }
         });
   }
