@@ -1,0 +1,32 @@
+<div class="login-container">
+  <div class="lob-selection-form">
+    <form class="login-box" [formGroup]="form" (submit)="navigateToLobSelection()">
+      <h1>Please Enter your Details</h1>
+      <div class="input-group">
+        <label for="firstName">First Name</label>
+        <input id="firstName" formControlName="firstName" type="text" placeholder="Enter your first name">
+        @if (submitted() && firstName?.hasError('required')) {
+          <div class="error">First Name is a required field.</div>
+        }
+      </div>
+      <div class="input-group">
+        <label for="lastName">Last Name</label>
+        <input id="lastName" formControlName="lastName" type="text" placeholder="Enter your last name">
+        @if (submitted() && lastName?.hasError('required')) {
+          <div class="error">Last Name is a required field.</div>
+        }
+      </div>
+      <div class="input-group">
+        <label for="email">Email</label>
+        <input id="email" formControlName="email" type="email" placeholder="Enter your email">
+        @if (submitted() && email?.hasError('required')) {
+          <div class="error">Email is a required field.</div>
+        }
+        @if (submitted() && email?.hasError('email')) {
+          <div class="error">Email must be a valid email address.</div>
+        }
+      </div>
+      <app-button [text]="'Login'" [type] = "'submit'"></app-button>
+    </form>
+  </div>
+</div>

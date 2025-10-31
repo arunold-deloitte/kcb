@@ -1,0 +1,39 @@
+<div class="quiz-page-container">
+  <div class="quiz-form-container">
+    <div class="quiz-container">
+      <div class="quiz-header">
+        <p>Question {{currentQuestionIndex() + 1}} of {{questions().length}}</p>
+      </div>
+      <div class="progress-bar">
+        <div class="progress" [style.width.%]="(currentQuestionIndex() + 1) / questions().length * 100"></div>
+      </div>
+      <div class="quiz-body">
+        <div class="question-container">
+          <h2>{{ currentQuestion().question }}</h2>
+          <div class="options-container">
+            @for (option of currentQuestion().options; track option) {
+              <div 
+                class="option" 
+                [class.selected]="option === selectedOption()" 
+                (click)="selectOption(option)">
+                <input type="radio" name="option" [value]="option" [checked]="option === selectedOption()">
+                <label>{{ option }}</label>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+      <div class="button-container">
+        <app-button (click)="exitTest()" [text]="'Exit Test'"></app-button>
+        <div class="navigation-buttons">
+          <app-button (click)="previousQuestion()" [text]="'Back'" [disabled]="currentQuestionIndex() === 0"></app-button>
+          <app-button 
+            (click)="nextQuestion()" 
+            [text]="isLastQuestion() ? 'Finish' : 'Next'" 
+            [disabled]="!selectedOption()">
+          </app-button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

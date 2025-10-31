@@ -1,0 +1,85 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f5f5f5;
+  margin-top: -40px;
+}
+
+.lob-selection-form {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 90%;
+  height: 75%;
+  max-width: none;
+  max-height: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.container {
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+  height: calc(100vh - 7rem) 
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+h1 {
+  font-size: 1.25rem;
+  color: #333;
+  font-family: Google Sans, sans-serif;
+  font-weight: 100;
+}
+
+.input-group {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 40%;
+  font-size: 0.75rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+input.ng-invalid.ng-touched {
+  border-color: red;
+}
+
+.error {
+  color: red;
+  margin-top: 0.5rem;
+}
+
+.divider {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 1rem 0;
+  color: #ccc;
+}
+
+app-google-one-tap {
+  display: flex;
+  justify-content: center;
+}

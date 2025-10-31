@@ -1,0 +1,56 @@
+<div class="results-page-container">
+  <div class="lob-selection-form">
+    <div class="form-content">
+      @if (processedResults(); as results) {
+        <div class="header">
+          <h1>Quiz Results</h1>
+          <div class="header-actions">
+            <app-button [text]="'Go to HomePage'" (click)="navigateToLobSelection()"></app-button>
+          </div>
+        </div>
+
+        <div class="results-content">
+          <div class="score-summary">
+            <h2>Your Score</h2>
+            <div class="score-circle" [style.--percentage]="results.score">
+              <div class="score-percentage">{{ results.score | number:'1.0-0' }}%</div>
+            </div>
+          </div>
+
+          <div class="detailed-results">
+            <div class="filter-bar">
+              <div class="result-tabs">
+                <button [class.active]="filter() === 'all'" (click)="setFilter('all')">All ({{ results.answers.length }})</button>
+                <button [class.active]="filter() === 'correct'" (click)="setFilter('correct')">Correct ({{ correctCount() }})</button>
+                <button [class.active]="filter() === 'incorrect'" (click)="setFilter('incorrect')">Incorrect ({{ incorrectCount() }})</button>
+              </div>
+              <div class="search-and-filter">
+                <input type="text" placeholder="Search questions" (input)="onSearch($event)">
+              </div>
+            </div>
+
+            <div class="question-list">
+              @for (item of filteredQuestions(); track item.id) {
+                <div class="question-item">
+                  <div class="question-status-icon" [class.correct]="item.isCorrect" [class.incorrect]="!item.isCorrect">
+                    {{ item.isCorrect ? '✓' : '✗' }}
+                  </div>
+                  <div class="question-details">
+                    <p class="question-text">{{ item.question }}</p>
+                    <p class="your-answer">Your answer: {{ item.selectedOption }}</p>
+                    @if (!item.isCorrect) {
+                      <p class="correct-answer">Correct answer: {{ item.answer }}</p>
+                    }
+                    <p class="explanation">{{ item.answerDescription }}</p>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      } @else {
+        <p>Loading results...</p>
+      }
+    </div>
+  </div>
+</div>

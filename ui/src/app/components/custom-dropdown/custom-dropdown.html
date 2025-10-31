@@ -1,0 +1,13 @@
+<div class="custom-dropdown-container">
+  <button class="dropdown-toggle" (click)="toggleDropdown()">
+    {{ selectedLabel() }}
+    <span class="dropdown-arrow"></span>
+  </button>
+  @if (isOpen()) {
+    <ul class="dropdown-menu">
+      @for (option of options(); track option.value) {
+        <li (click)="selectOption(option)">{{ option.label }}</li>
+      }
+    </ul>
+  }
+</div>

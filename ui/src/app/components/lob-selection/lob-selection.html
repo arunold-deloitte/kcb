@@ -1,0 +1,22 @@
+<div class="lob-selection-container">
+  <div class="lob-selection-form">
+    <div class="form-content">
+      @if (userName()) {
+        <h1>Welcome {{ userName() }}</h1>
+      }
+      <p>Select your Line of Business to begin the knowledge check.</p>
+      <app-custom-dropdown 
+        [options]="lobOptions" 
+        (selectionChanged)="onLobSelection($event)"
+        (dropdownToggled)="onDropdownToggle($event)"
+      ></app-custom-dropdown>
+      <div class="button-container" [class.dropdown-open]="dropdownOpen()">
+        <app-button 
+          [text]="'Start Test'"
+          (click)="startQuiz()"
+          [disabled]="!selectedLob()"
+        ></app-button>
+      </div>
+    </div>
+  </div>
+</div>
